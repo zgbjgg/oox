@@ -1,0 +1,17 @@
+{application, oox,
+ [{description, "Slave isolated process for jun environments"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {mod, { oox_app, []}},
+  {applications,
+   [kernel,
+    stdlib,
+    lager
+   ]},
+  {env,[]},
+  {modules, []},
+
+  {maintainers, []},
+  {licenses, []},
+  {links, []}
+ ]}.
