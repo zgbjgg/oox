@@ -33,6 +33,25 @@ init([Host]) ->
 handle_call(stop_link, _From, State) ->
     {stop, normal, ok, State};
 
+handle_call({rpc, SlaveNode, Options}, _From, State=#state{slaves = Slaves}) ->
+    % search slave node in slaves
+    case ets:lookup(Slaves, SlaveNode) of
+        [{SlaveNode, _}] ->
+            % simple execute the rpc call using the passed options
+            Module = proplists:get_value(mod, Options),
+            Function = proplists:get_value(func, Options),
+            Args = proplists:get_value(args, Options, []),
+
+            Response = rpc:call(SlaveNode, Module, Function, Args),
+
+            lager:debug("sent RPC to slave node ~p with response ~p", [SlaveNode, Response]),
+
+            {reply, Response, State};
+        _                ->
+            lager:error("could not find slave ~p into active oox slaves", [SlaveNode]),
+            {reply, {error, notfound}, State}
+    end;
+
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -54,14 +73,20 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
             % launch code into new slave
             ok = rpc:call(SlaveNode, code, add_paths, [CodePath]),
             % insert slave into slaves (ets) & publish slave to caller
-            true = ets:insert(Slaves, {SlaveSerial, SlaveNode}),
-            Caller ! {ok, SlaveNode},
+            true = ets:insert(Slaves, {SlaveNode, SlaveSerial}),
+            Caller ! {oox, launch, SlaveNode},
             {noreply, State};
         Error           ->
             lager:error("could not launch slave node, reason ~p", [Error]),
-            Caller ! {error, Error},
+            Caller ! {oox, error, Error},
             {noreply, State}
     end;
+
+handle_cast({stop_slave, SlaveNode}, State=#state{slaves = Slaves}) ->
+    % remove from active oox slaves
+    true = ets:delete(Slaves, SlaveNode),
+    ok = slave:stop(SlaveNode),
+    {noreply, State};
 
 handle_cast(_Request, State) ->
     {noreply, State}.
