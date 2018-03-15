@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1,
+-export([start_link/2,
     stop_link/1]).
 
 %% gen_server callbacks
@@ -18,20 +18,21 @@
 -record(state, {cluster = undefined :: undefined | pid(),
     slave = down :: down | atom(),
     state = init :: atom(),
+    scheduler = undefined :: undefined | pid(),
     jun_worker = undefined :: undefined | pid()}).
 
-start_link(Host) ->
-    gen_server:start_link(?MODULE, [Host], []).
+start_link(Scheduler, Host) ->
+    gen_server:start_link(?MODULE, [Scheduler, Host], []).
 
 stop_link(Pid) ->
     gen_server:call(Pid, stop_link).
 
-init([Host]) ->
+init([Scheduler, Host]) ->
     % at init process start the cluster, at this point
     % since launching a new slave is an asynchronous process
     % then let it do after initializing
     {ok, Cluster} = oox_cluster:start_link(Host),
-    {ok, #state{cluster = Cluster, slave = down, state = started}}.
+    {ok, #state{cluster = Cluster, slave = down, state = started, scheduler = Scheduler}}.
 
 handle_call(stop_link, _From, State) ->
     {stop, normal, ok, State};
@@ -45,8 +46,9 @@ handle_call(launch, _From, State=#state{cluster = Cluster, state = started}) ->
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
-handle_cast({exe, Scheduler, Commands}, State=#state{cluster = Cluster,
-        slave = SlaveNode, state = ready, jun_worker = Worker}) ->
+handle_cast({exe, Commands}, State=#state{cluster = Cluster,
+        slave = SlaveNode, state = ready, scheduler = Scheduler,
+        jun_worker = Worker}) ->
     Pid = self(),
     % in the first parsing just check for `$worker`
     ParsedCommands = oox_slave:parse_commands(Commands, '$worker', Worker),
@@ -73,18 +75,21 @@ handle_cast(_Request, State) ->
     {noreply, State}.
 
 handle_info({oox, launch, SlaveNode}, State=#state{cluster = Cluster,
-        state = launching}) ->
+        state = launching, scheduler = Scheduler}) ->
     % start a new worker for jun in the slave through cluster
     Options = [{mod, jun_worker},
         {func, start_link},
         {args, []}],
     {ok, Worker} = gen_server:call(Cluster, {rpc, SlaveNode, Options}),
+    % send back to scheduler that all was ok
+    ok = gen_server:cast(Scheduler, {oox, up, self()}),
     % setup the slave in the job
     {noreply, State#state{cluster = Cluster, slave = SlaveNode,
         state = ready, jun_worker = Worker}};
 
-handle_info({oox, error, _Error}, State=#state{state = launching}) ->
-    % nothing to do for now
+handle_info({oox, error, Error}, State=#state{state = launching, scheduler = Scheduler}) ->
+    % come back to scheduler, some happens!
+    ok = gen_server:cast(Scheduler, {oox, error, self(), Error}),
     {noreply, State#state{state = down}};
 
 handle_info(_Info, State) ->

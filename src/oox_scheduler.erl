@@ -50,18 +50,18 @@ init([]) ->
 handle_call(stop_link, _From, State) ->
     {stop, normal, ok, State};
 
-handle_call({add_job, Host}, _From, State=#state{jobs = Jobs}) ->
+handle_call({add_job, Host}, _From, State) ->
+    Scheduler = self(),
     % create a new job and setup in the server
-    {ok, Job} = oox_job:start_link(Host),
+    {ok, Job} = oox_job:start_link(Scheduler, Host),
     % right after created job, launch to pass in ready state
     ok = gen_server:call(Job, launch),
-    {reply, {ok, Job}, State#state{jobs = [Job | Jobs]}};
+    {reply, {ok, Job}, State};
 
 handle_call({start_job, Job, Commands}, _From, State=#state{jobs = Jobs}) ->
-    Pid = self(),
     case lists:member(Job, Jobs) of
         true  ->
-            ok = gen_server:cast(Job, {exe, Pid, Commands}),
+            ok = gen_server:cast(Job, {exe, Commands}),
             {reply, {ok, working}, State};
         false ->
             {reply, {error, no_such_job}, State}
@@ -87,6 +87,12 @@ handle_cast({oox, done_job, Job, Results}, State=#state{jobs = Jobs, subscriber 
     JobStatus = analyze_results(Results),
     Subscriber ! {job, Job, JobStatus},
     {noreply, State#state{jobs = Jobs -- [Job]}};
+
+handle_cast({oox, up, Job}, State=#state{jobs = Jobs}) ->
+    {noreply, State#state{jobs = [Job | Jobs]}};
+
+handle_cast({oox, error, _Job, _Error}, State) ->
+    {noreply, State};
 
 handle_cast(_Request, State) ->
     {noreply, State}.
