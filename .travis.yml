@@ -12,6 +12,7 @@ install:
   - sudo pip install seaborn
   - sudo pip install --upgrade IPython
   - sudo pip install codecov
+  - epmd -daemon
 after_success: "codecov"
 otp_release:
 - 20.0
