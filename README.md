@@ -99,6 +99,9 @@ In the subscriber process you will receive a response based on the execution of 
 Shell got {job,<0.115.0>,{broken,{error,{'exceptions.KeyError',"Atom('fage')"}}}}
 ok
 ```
+### See also
+
+[JUN: python pandas support for dataframes manipulation over erlang](https://github.com/zgbjgg/jun)
 
 #### Authors
 
