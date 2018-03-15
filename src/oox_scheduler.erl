@@ -3,8 +3,13 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1,
-    stop_link/1]).
+-export([start_link/0,
+    stop_link/0,
+    add_job/1,
+    start_job/2,
+    get_jobs/0,
+    set_subscriber/1,
+    get_subscriber/0]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -18,14 +23,29 @@
 -record(state, {jobs = [] :: list(),
     subscriber = undefined :: undefined | pid()}).
 
-start_link(Pid) ->
-    gen_server:start_link(?MODULE, [Pid], []).
+start_link() ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
-stop_link(Pid) ->
-    gen_server:call(Pid, stop_link).
+stop_link() ->
+    gen_server:call(?MODULE, stop_link).
 
-init([Pid]) ->
-    {ok, #state{jobs = [], subscriber = Pid}}.
+add_job(Host) ->
+    gen_server:call(?MODULE, {add_job, Host}).
+
+start_job(Job, Commands) ->
+    gen_server:call(?MODULE, {start_job, Job, Commands}).
+
+get_jobs() ->
+    gen_server:call(?MODULE, get_jobs).
+
+get_subscriber() ->
+    gen_server:call(?MODULE, get_subscriber).
+
+set_subscriber(Subscriber) ->
+    gen_server:call(?MODULE, {set_subscriber, Subscriber}).
+
+init([]) ->
+    {ok, #state{jobs = [], subscriber = undefined}}.
 
 handle_call(stop_link, _From, State) ->
     {stop, normal, ok, State};
@@ -46,6 +66,15 @@ handle_call({start_job, Job, Commands}, _From, State=#state{jobs = Jobs}) ->
         false ->
             {reply, {error, no_such_job}, State}
     end;
+
+handle_call(get_jobs, _From, State=#state{jobs = Jobs}) ->
+    {reply, {ok, Jobs}, State};
+
+handle_call({set_subscriber, Subscriber}, _From, State) ->
+    {reply, ok, State#state{subscriber = Subscriber}};
+
+handle_call(get_subscriber, _From, State=#state{subscriber = Subscriber}) ->
+    {reply, {ok, Subscriber}, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
