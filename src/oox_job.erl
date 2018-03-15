@@ -50,14 +50,12 @@ handle_cast({exe, Scheduler, Commands}, State=#state{cluster = Cluster,
     Pid = self(),
     % in the first parsing just check for `$worker`
     ParsedCommands = oox_slave:parse_commands(Commands, '$worker', Worker),
-    lager:debug("preparing to send commands ~p to slave ~p", [ParsedCommands, SlaveNode]),
     Results = lists:foldl(fun(Cmd, Acc) ->
         Last = case Acc of
             [] -> none;
             _  -> lists:last(Acc)
         end,
         [Cmd0] = oox_slave:parse_commands([Cmd], '$dataframe', Last),
-        lager:info("sending command ~p onto slave ~p", [Cmd0, SlaveNode]),
         case gen_server:call(Cluster, {rpc, SlaveNode, Cmd0}) of
             {ok, R}        ->
                 Acc ++ [R];
