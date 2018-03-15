@@ -43,7 +43,7 @@ ok
 Don't worry about starting the apps in the environment if you use `oox` for example in a rebar.config,
 this is only to show how the system works.
 
-## Add a subscriber process:
+## Add a subscriber process
 
 Since jobs can be executed in async mode, the response will be delivered to a process, just set it:
 
@@ -80,7 +80,7 @@ for example if in the command you want to use the worker, just use $worker in th
   {args,['$worker','$dataframe',no_age,[]]}]]
 ```
 
-# Starting the job
+## Starting the job
 
 Start the job to process the commands in the slave and waiting for response (remember response is delivered to the subscriber),
 when job finish also the slave is stopped.
@@ -90,7 +90,7 @@ when job finish also the slave is stopped.
 {ok,working}
 ```
 
-# Receive response of job
+## Receive response of job
 
 In the subscriber process you will receive a response based on the execution of commands, there is two posibles responses: passed or broken.
 
