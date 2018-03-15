@@ -97,7 +97,7 @@ handle_info(_Info, State) ->
 terminate(_Reason, #state{slaves = Slaves}) ->
     % terminate each slave
     SlaveNodes = ets:tab2list(Slaves),
-    ok = lists:foreach(fun({_, SlaveNode}) ->
+    ok = lists:foreach(fun({SlaveNode, _}) ->
         slave:stop(SlaveNode)
     end, SlaveNodes),
     true = ets:delete(Slaves), % remove slaves if all terminates!
