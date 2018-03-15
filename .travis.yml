@@ -1,0 +1,17 @@
+language: erlang
+script: "make && make test"
+install:
+  - sudo apt-get install python-tk
+  - sudo pip install numpy
+  - sudo pip install pandas
+  - sudo pip install matplotlib
+  - sudo pip install sklearn
+  - sudo pip install scipy
+  - sudo pip install plotly --upgrade
+  - sudo pip install cufflinks --upgrade
+  - sudo pip install seaborn
+  - sudo pip install --upgrade IPython
+  - sudo pip install codecov
+after_success: "codecov"
+otp_release:
+- 20.0
