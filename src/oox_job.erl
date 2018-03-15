@@ -47,6 +47,7 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({exe, Scheduler, Commands}, State=#state{cluster = Cluster,
         slave = SlaveNode, state = ready, jun_worker = Worker}) ->
+    Pid = self(),
     % in the first parsing just check for `$worker`
     ParsedCommands = oox_slave:parse_commands(Commands, '$worker', Worker),
     lager:debug("preparing to send commands ~p to slave ~p", [ParsedCommands, SlaveNode]),
@@ -67,8 +68,7 @@ handle_cast({exe, Scheduler, Commands}, State=#state{cluster = Cluster,
     % if results contains some error in a command, emit the incident
     % to the scheduler, otherwise emit a success execution of this job in
     % order to scheduler stop it.
-    %ok = gen_server:call(Scheduler, {oox, job, Results}),
-    Scheduler ! {ook, job, Results},
+    ok = gen_server:cast(Scheduler, {oox, done_job, Pid, Results}),
     {noreply, State};
 
 handle_cast(_Request, State) ->
