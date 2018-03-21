@@ -63,7 +63,11 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
     lager:info("ensuring started for jun main dependency, state ~p", [JunApp]),
 
     % get full code path
-    CodePath = code:get_path(),
+    % NOTE: when using path just load the required apps, since loading entire
+    % path will cause a long delay starting the slave
+    CodePath = lists:map(fun(App) ->
+        code:lib_dir(App) ++ "/ebin"
+    end, [goldrush, lager, erlport, jun]),
 
     % now start slave and ensure all is started correctly!
     SlaveSerial = oox_slave:unique_serial(),
