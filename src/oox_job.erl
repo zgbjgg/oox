@@ -53,10 +53,7 @@ handle_cast({exe, Commands}, State=#state{cluster = Cluster,
     % in the first parsing just check for `$worker`
     ParsedCommands = oox_slave:parse_commands(Commands, '$worker', Worker),
     Results = lists:foldl(fun(Cmd, Acc) ->
-        Last = case Acc of
-            [] -> none;
-            _  -> lists:last(Acc)
-        end,
+        Last = oox_slave:last_dataframe(lists:reverse(Acc)),
         [Cmd0] = oox_slave:parse_commands([Cmd], '$dataframe', Last),
         case gen_server:call(Cluster, {rpc, SlaveNode, Cmd0}) of
             {ok, R}        ->
