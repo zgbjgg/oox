@@ -71,11 +71,9 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
 
     % now start slave and ensure all is started correctly!
     SlaveSerial = oox_slave:unique_serial(),
-    Options = oox_slave:set_options(),
+    Options = oox_slave:set_options(CodePath),
     case slave:start(Host, SlaveSerial, Options) of
         {ok, SlaveNode} ->
-            % launch code into new slave
-            ok = rpc:call(SlaveNode, code, add_paths, [CodePath]),
             % insert slave into slaves (ets) & publish slave to caller
             true = ets:insert(Slaves, {SlaveNode, SlaveSerial}),
             Caller ! {oox, launch, SlaveNode},
