@@ -18,7 +18,9 @@ set_options(Nodename, CodePath, Cookie) when is_atom(Cookie) ->
     set_options(Nodename, CodePath, atom_to_list(Cookie));
 set_options(Nodename, CodePath, Cookie)                      ->
     Pa = string:join(CodePath, " "),
-    "erl -name " ++ Nodename ++ " -noshell -noinput -setcookie " ++ Cookie ++ " -pa " ++ Pa.
+    BinDir = os:getenv("BINDIR"),
+    lists:concat([BinDir, "/erl -name ", Nodename, " -noshell -noinput -setcookie ",
+        Cookie, " -pa ", Pa]).
 
 % for now parsing commands is a great helper to set
 % the worker in every command, using a single syntax from
