@@ -8,7 +8,7 @@
     ensure_ready/1]).
 
 unique_serial() ->
-    {MS, S, US} = erlang:now(),
+    {MS, S, US} = erlang:timestamp(),
     (MS*1000000+S)*1000000+US.
 
 set_options(Nodename, CodePath) ->
@@ -28,10 +28,10 @@ set_options(Nodename, CodePath, Cookie)                      ->
 parse_commands([], _For, _Value)                 -> [];
 parse_commands(Commands, _For, none)             -> Commands;
 parse_commands([Command | Commands], For, Value) ->
-    Args = proplists:get_value(args, Command, []),
+    Args = case lists:keyfind(args, 1, Command) of false -> []; {args, C} -> C end,
     F = build_fun(For, Value),
     NewArgs = lists:map(F, Args),
-    NewCommand = proplists:delete(args, Command) ++ [{args, NewArgs}],
+    NewCommand = lists:keydelete(args, 1, Command) ++ [{args, NewArgs}],
     [NewCommand] ++ parse_commands(Commands, For, Value).
 
 % check where resides the last dataframe to take from there
