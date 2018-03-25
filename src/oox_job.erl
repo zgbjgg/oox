@@ -73,11 +73,13 @@ handle_cast(_Request, State) ->
 
 handle_info({oox, launch, SlaveNode}, State=#state{cluster = Cluster,
         state = launching, scheduler = Scheduler}) ->
+    lager:info("receiving launch signal for slave ~p", [SlaveNode]),
     % start a new worker for jun in the slave through cluster
     Options = [{mod, jun_worker},
         {func, start_link},
         {args, []}],
     {ok, Worker} = gen_server:call(Cluster, {rpc, SlaveNode, Options}),
+    lager:info("starting jun worker on slave node at ~p", [Worker]),
     % send back to scheduler that all was ok
     ok = gen_server:cast(Scheduler, {oox, up, self()}),
     % setup the slave in the job
@@ -86,6 +88,7 @@ handle_info({oox, launch, SlaveNode}, State=#state{cluster = Cluster,
 
 handle_info({oox, error, Error}, State=#state{state = launching, scheduler = Scheduler}) ->
     % come back to scheduler, some happens!
+    lager:error("could not start & reach slave, reason ~p", [Error]),
     ok = gen_server:cast(Scheduler, {oox, error, self(), Error}),
     {noreply, State#state{state = down}};
 
