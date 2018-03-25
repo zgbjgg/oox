@@ -13,7 +13,7 @@
     test_oox_scheduler_add_job_bad_host/1]).
 
 -define(HOST, "127.0.0.1").
--define(BAD_HOST, "127.1.1.2").
+-define(BAD_HOST, "").
 -define(CMDS(Path), [[{mod,jun_pandas},
     {func,read_csv},
     {args,['$worker',Path]}],
