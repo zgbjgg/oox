@@ -18,6 +18,9 @@
 -record(state, {slaves = undefined :: atom(),
     hostname :: string()}).
 
+% default kill for os pid of each port (node)
+-define(KILL(OsPid), "kill -9 " ++ integer_to_list(OsPid)).
+
 start_link(Host) ->
     % normal startup without any slave
     gen_server:start_link(?MODULE, [Host], []).
@@ -71,13 +74,25 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
 
     % now start slave and ensure all is started correctly!
     SlaveSerial = oox_slave:unique_serial(),
-    Options = oox_slave:set_options(CodePath),
-    case slave:start(Host, SlaveSerial, Options) of
-        {ok, SlaveNode} ->
-            % insert slave into slaves (ets) & publish slave to caller
-            true = ets:insert(Slaves, {SlaveNode, SlaveSerial}),
-            Caller ! {oox, launch, SlaveNode},
-            {noreply, State};
+    Nodename = integer_to_list(SlaveSerial) ++ "@" ++ Host, 
+    Options = oox_slave:set_options(Nodename, CodePath),
+    case oox_slave:node_port(Options, 1000) of
+        {ok, Port} ->
+            % call to net adm to ping new node
+            case oox_slave:ensure_ready(Nodename) of
+                {ok, SlaveNode}      ->
+                    lager:info("reached slave node ~p, sending launch signal to main process ~p", [SlaveNode, Caller]),
+                    % insert slave into slaves (ets) & publish slave to caller
+                    true = ets:insert(Slaves, {SlaveNode, {SlaveSerial, Port}}),
+                    Caller ! {oox, launch, SlaveNode},
+                    {noreply, State};
+                {error, _}=Error ->
+                    lager:error("could not reach slave node, reason ~p", [Error]),
+                    Caller ! {oox, error, Error},
+                    OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+                    os:cmd(?KILL(OsPid)),
+                    {noreply, State}
+            end;
         Error           ->
             lager:error("could not launch slave node, reason ~p", [Error]),
             Caller ! {oox, error, Error},
@@ -86,8 +101,11 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
 
 handle_cast({stop_slave, SlaveNode}, State=#state{slaves = Slaves}) ->
     % remove from active oox slaves
+    [{_, {_, Port}}] = ets:lookup(Slaves, SlaveNode),
     true = ets:delete(Slaves, SlaveNode),
-    ok = slave:stop(SlaveNode),
+    OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+    os:cmd(?KILL(OsPid)),
+    true = port_close(Port),
     {noreply, State};
 
 handle_cast(_Request, State) ->
@@ -99,8 +117,10 @@ handle_info(_Info, State) ->
 terminate(_Reason, #state{slaves = Slaves}) ->
     % terminate each slave
     SlaveNodes = ets:tab2list(Slaves),
-    ok = lists:foreach(fun({SlaveNode, _}) ->
-        slave:stop(SlaveNode)
+    ok = lists:foreach(fun({_SlaveNode, {_, Port}}) ->
+        OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+        os:cmd(?KILL(OsPid)),
+        port_close(Port)
     end, SlaveNodes),
     true = ets:delete(Slaves), % remove slaves if all terminates!
     ok.
