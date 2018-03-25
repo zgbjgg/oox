@@ -1,23 +1,24 @@
 -module(oox_slave).
 
 -export([unique_serial/0,
-    set_options/1,
     set_options/2,
     parse_commands/3,
-    last_dataframe/1]).
+    last_dataframe/1,
+    node_port/2,
+    ensure_ready/1]).
 
 unique_serial() ->
     {MS, S, US} = erlang:now(),
     (MS*1000000+S)*1000000+US.
 
-set_options(CodePath) ->
-    set_options(erlang:get_cookie(), CodePath).
+set_options(Nodename, CodePath) ->
+    set_options(Nodename, CodePath, erlang:get_cookie()).
 
-set_options(Cookie, CodePath) when is_atom(Cookie) ->
-    set_options(atom_to_list(Cookie), CodePath);
-set_options(Cookie, CodePath)                      ->
+set_options(Nodename, CodePath, Cookie) when is_atom(Cookie) ->
+    set_options(Nodename, CodePath, atom_to_list(Cookie));
+set_options(Nodename, CodePath, Cookie)                      ->
     Pa = string:join(CodePath, " "),
-    "-setcookie " ++ Cookie ++ " -pa " ++ Pa.
+    "erl -name " ++ Nodename ++ " -noshell -noinput -setcookie " ++ Cookie ++ " -pa " ++ Pa.
 
 % for now parsing commands is a great helper to set
 % the worker in every command, using a single syntax from
@@ -37,6 +38,26 @@ last_dataframe([{Class, DataFrame} | _]) ->
     {Class, DataFrame};
 last_dataframe([_ | Rs])                 ->
     last_dataframe(Rs).
+
+node_port(Cmd, Timeout) ->
+    Port = open_port({spawn, Cmd}, [stream, exit_status]),
+    receive
+        {Port,{exit_status,_}} ->
+            {error, exit_status}
+    after Timeout ->
+        {ok, Port}
+    end.
+
+ensure_ready(Nodename) when is_list(Nodename) ->
+    ensure_ready(list_to_atom(Nodename));
+ensure_ready(Nodename)                        ->
+    case net_adm:ping(Nodename) of
+        pong ->
+            % now ensure the path is loaded!
+            {ok, Nodename};
+        pang ->
+            {error, down}
+    end.
 
 %% @hidden
 
