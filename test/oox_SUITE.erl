@@ -127,7 +127,8 @@ test_oox_scheduler_add_job_bad_host(_) ->
     Pid = self(),
     ok = oox_scheduler:set_subscriber(Pid),
     {ok, _Job} = oox_scheduler:add_job(?BAD_HOST),
-    % timer to simulate waiting for slave (never comes)
-    ok = timer:sleep(2000),
+    % timer to simulate waiting for slave (never comes),
+    % set a higher time due to net adm ping timeout!
+    ok = timer:sleep(8000),
     {ok, Jobs} = oox_scheduler:get_jobs(),
     ?assertEqual([], Jobs).
