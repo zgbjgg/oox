@@ -41,9 +41,9 @@ handle_call({rpc, SlaveNode, Options}, _From, State=#state{slaves = Slaves}) ->
     case ets:lookup(Slaves, SlaveNode) of
         [{SlaveNode, _}] ->
             % simple execute the rpc call using the passed options
-            Module = proplists:get_value(mod, Options),
-            Function = proplists:get_value(func, Options),
-            Args = proplists:get_value(args, Options, []),
+            {mod, Module} = lists:keyfind(mod, 1, Options),
+            {func, Function} = lists:keyfind(func, 1, Options),
+            {args, Args} = case lists:keyfind(args, 1, Options) of false -> {args, []}; A -> A end,
 
             Response = rpc:call(SlaveNode, Module, Function, Args),
 
@@ -89,7 +89,7 @@ handle_cast({launch_slave, Caller}, State=#state{slaves = Slaves, hostname = Hos
                 {error, _}=Error ->
                     lager:error("could not reach slave node, reason ~p", [Error]),
                     Caller ! {oox, error, Error},
-                    OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+                    {os_pid, OsPid} = lists:keyfind(os_pid, 1, erlang:port_info(Port)),
                     os:cmd(?KILL(OsPid)),
                     {noreply, State}
             end;
@@ -103,7 +103,7 @@ handle_cast({stop_slave, SlaveNode}, State=#state{slaves = Slaves}) ->
     % remove from active oox slaves
     [{_, {_, Port}}] = ets:lookup(Slaves, SlaveNode),
     true = ets:delete(Slaves, SlaveNode),
-    OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+    {os_pid, OsPid} = lists:keyfind(os_pid, 1, erlang:port_info(Port)),
     os:cmd(?KILL(OsPid)),
     true = port_close(Port),
     {noreply, State};
@@ -118,7 +118,7 @@ terminate(_Reason, #state{slaves = Slaves}) ->
     % terminate each slave
     SlaveNodes = ets:tab2list(Slaves),
     ok = lists:foreach(fun({_SlaveNode, {_, Port}}) ->
-        OsPid = proplists:get_value(os_pid, erlang:port_info(Port)),
+        {os_pid, OsPid} = lists:keyfind(os_pid, 1, erlang:port_info(Port)),
         os:cmd(?KILL(OsPid)),
         port_close(Port)
     end, SlaveNodes),
