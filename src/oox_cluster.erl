@@ -104,8 +104,8 @@ handle_cast({stop_slave, SlaveNode}, State=#state{slaves = Slaves}) ->
     [{_, {_, Port}}] = ets:lookup(Slaves, SlaveNode),
     true = ets:delete(Slaves, SlaveNode),
     {os_pid, OsPid} = lists:keyfind(os_pid, 1, erlang:port_info(Port)),
-    os:cmd(?KILL(OsPid)),
     true = port_close(Port),
+    os:cmd(?KILL(OsPid)),
     {noreply, State};
 
 handle_cast(_Request, State) ->
@@ -119,8 +119,8 @@ terminate(_Reason, #state{slaves = Slaves}) ->
     SlaveNodes = ets:tab2list(Slaves),
     ok = lists:foreach(fun({_SlaveNode, {_, Port}}) ->
         {os_pid, OsPid} = lists:keyfind(os_pid, 1, erlang:port_info(Port)),
-        os:cmd(?KILL(OsPid)),
-        port_close(Port)
+        true = port_close(Port),
+        os:cmd(?KILL(OsPid))
     end, SlaveNodes),
     true = ets:delete(Slaves), % remove slaves if all terminates!
     ok.
