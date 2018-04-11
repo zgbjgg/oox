@@ -1,5 +1,5 @@
 {application, oox,
- [{description, "slave isolated process for jun environments"},
+ [{description, "slave isolated process & scheduler for jun environments"},
   {vsn, "0.1.0"},
   {registered, []},
   {mod, { oox_app, []}},
@@ -10,8 +10,7 @@
    ]},
   {env,[]},
   {modules, []},
-
-  {maintainers, []},
-  {licenses, []},
-  {links, []}
+  {maintainers, ["Jorge Garrido"]},
+  {licenses, ["MIT"]},
+  {links, [{"Github", "https://github.com/zgbjgg/oox"}]}
  ]}.
