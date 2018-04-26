@@ -3,6 +3,7 @@
 
 **OOX** - slave isolated process & scheduler for jun environments
 
+[![Hex.pm](https://img.shields.io/hexpm/v/oox.svg)](https://hex.pm/packages/oox) 
 [![Build Status](https://travis-ci.org/zgbjgg/oox.svg?branch=master)](https://travis-ci.org/zgbjgg/oox)
 [![Codecov](https://img.shields.io/codecov/c/github/zgbjgg/oox.svg)](https://codecov.io/gh/zgbjgg/oox)
 [![License: MIT](https://img.shields.io/github/license/zgbjgg/oox.svg)](https://raw.githubusercontent.com/zgbjgg/oox/master/LICENSE)
