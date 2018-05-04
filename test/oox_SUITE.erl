@@ -16,13 +16,13 @@
 -define(BAD_HOST, "").
 -define(CMDS(Path), [[{mod,jun_pandas},
     {func,read_csv},
-    {args,['$worker',Path]}],
+    {args,['$worker',Path,[]]}],
    [{mod,jun_pandas},
     {func,head},
     {args,['$worker','$dataframe',1,[]]}]]).
 -define(BROKEN_CMDS(Path), [[{mod,jun_pandas},
     {func,read_csv},
-    {args,['$worker',Path]}],
+    {args,['$worker',Path,[]]}],
    [{mod,jun_pandas},
     {func,max},
     {args,['$worker','$dataframe',broken_age,[]]}]]).
@@ -91,7 +91,7 @@ test_oox_scheduler_add_job(Config) ->
     ok = oox_scheduler:set_subscriber(Pid),
     % next create the job and sleep a minutes for slave initializing
     {ok, Job} = oox_scheduler:add_job(?HOST),
-    ok = timer:sleep(2000),
+    ok = timer:sleep(3000),
     {ok, [Job]} = oox_scheduler:get_jobs(),
     % next send some commands (if broken the test will fails automatically)
     Cmds = proplists:get_value(cmds, Config),
@@ -111,7 +111,7 @@ test_oox_scheduler_add_job_broken(Config) ->
     ok = oox_scheduler:set_subscriber(Pid),
     % next create the job and sleep a minutes for slave initializing
     {ok, Job} = oox_scheduler:add_job(?HOST),
-    ok = timer:sleep(2000),
+    ok = timer:sleep(3000),
     {ok, [Job]} = oox_scheduler:get_jobs(),
     Cmds = proplists:get_value(broken_cmds, Config),
     {ok, working} = oox_scheduler:start_job(Job, Cmds),
