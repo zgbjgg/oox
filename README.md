@@ -25,19 +25,13 @@ $ erl -pa _build/default/lib/*/ebin/ -name oox@127.0.0.1 -setcookie oox
 After executing this all dependencies are set in path, just start them:
 
 ```erlang
-(oox@127.0.0.1)1> application:start(syntax_tools).
-ok
-(oox@127.0.0.1)2> application:start(compiler).
-ok
-(oox@127.0.0.1)3> application:start(goldrush).
-ok
-(oox@127.0.0.1)4> application:start(lager).
-ok
-(oox@127.0.0.1)5> application:start(erlport).
-ok
-(oox@127.0.0.1)6> application:start(jun).
-ok
-(oox@127.0.0.1)7> application:start(oox).
+(oox@127.0.0.1)1> Apps = [syntax_tools, compiler, goldrush, lager, erlport, jun, oox].
+[syntax_tools,compiler,goldrush,lager,erlport,jun,oox]
+(oox@127.0.0.1)2> lists:foreach(fun(App) -> application:start(App) end, Apps).
+18:07:20.845 [info] Application lager started on node 'oox@127.0.0.1'
+18:07:20.846 [info] Application erlport started on node 'oox@127.0.0.1'
+18:07:20.848 [info] Application jun started on node 'oox@127.0.0.1'
+18:07:20.850 [info] Application oox started on node 'oox@127.0.0.1'
 ok
 ```
 
