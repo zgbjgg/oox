@@ -5,7 +5,11 @@
     parse_commands/3,
     last_dataframe/1,
     node_port/2,
-    ensure_ready/1]).
+    ensure_ready/1,
+    last_series/1]).
+
+-define(CLASS_DATAFRAME, 'pandas.core.frame.DataFrame').
+-define(CLASS_SERIES, 'pandas.core.frame.DataFrame').
 
 unique_serial() ->
     {MS, S, US} = erlang:timestamp(),
@@ -35,11 +39,18 @@ parse_commands([Command | Commands], For, Value) ->
     [NewCommand] ++ parse_commands(Commands, For, Value).
 
 % check where resides the last dataframe to take from there
-last_dataframe([])                       -> none;
-last_dataframe([{Class, DataFrame} | _]) ->
-    {Class, DataFrame};
-last_dataframe([_ | Rs])                 ->
+last_dataframe([])                                  -> none;
+last_dataframe([{?CLASS_DATAFRAME, DataFrame} | _]) ->
+    {?CLASS_DATAFRAME, DataFrame};
+last_dataframe([_ | Rs])                            ->
     last_dataframe(Rs).
+
+% check where resides the last series to take from there
+last_series([])                            -> none;
+last_series([{?CLASS_SERIES, Series} | _]) ->
+    {?CLASS_SERIES, Series};
+last_series([_ | Rs])                      ->
+    last_series(Rs).
 
 node_port(Cmd, Timeout) ->
     Port = open_port({spawn, Cmd}, [stream, exit_status]),
@@ -70,4 +81,8 @@ build_fun('$worker', Value)    ->
 build_fun('$dataframe', Value) ->
     fun('$dataframe') -> {_, DataFrame} = Value, DataFrame;
        (A)            -> A
+    end;
+build_fun('$series', Value)   ->
+    fun('$series') -> {_, Series} = Value, Series;
+       (A)         -> A
     end.
