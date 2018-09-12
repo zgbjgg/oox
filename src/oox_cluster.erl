@@ -47,7 +47,7 @@ handle_call({rpc, SlaveNode, Options}, _From, State=#state{slaves = Slaves}) ->
 
             Response = rpc:call(SlaveNode, Module, Function, Args),
 
-            lager:debug("sent RPC to slave node ~p with response ~p", [SlaveNode, Response]),
+            lager:info("sent RPC to slave node ~p with response ~p", [SlaveNode, Response]),
 
             {reply, Response, State};
         _                ->
