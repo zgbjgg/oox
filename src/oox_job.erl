@@ -57,7 +57,7 @@ handle_cast({exe, Commands}, State=#state{cluster = Cluster,
         LastSeries = oox_slave:last_series(lists:reverse(Acc)),
         [Cmd0] = oox_slave:parse_commands([Cmd], '$dataframe', LastDataFrame),
         [Cmd1] = oox_slave:parse_commands([Cmd0], '$series', LastSeries),
-        case gen_server:call(Cluster, {rpc, SlaveNode, Cmd1}) of
+        case gen_server:call(Cluster, {rpc, SlaveNode, Cmd1, infinity}, infinity) of
             {ok, R}        ->
                 Acc ++ [R];
             {error, Error} ->
@@ -80,13 +80,22 @@ handle_info({oox, launch, SlaveNode}, State=#state{cluster = Cluster,
     Options = [{mod, jun_worker},
         {func, start_link},
         {args, []}],
-    {ok, Worker} = gen_server:call(Cluster, {rpc, SlaveNode, Options}),
-    lager:info("starting jun worker on slave node at ~p", [Worker]),
-    % send back to scheduler that all was ok
-    ok = gen_server:cast(Scheduler, {oox, up, self()}),
-    % setup the slave in the job
-    {noreply, State#state{cluster = Cluster, slave = SlaveNode,
-        state = ready, jun_worker = Worker}};
+    case catch gen_server:call(Cluster, {rpc, SlaveNode, Options}) of
+      {'EXIT', Reason} ->
+          lager:error("couldnt receive a valid response from slave, killing them ~p", [Reason]),
+          ok = gen_server:cast(Scheduler, {oox, error, self(), Reason}),
+          ok = gen_server:cast(Cluster, {stop_slave, SlaveNode}),
+          % kill itself gracefully
+          ok = oox_job:stop_link(self()),
+          {noreply, State};
+      {ok, Worker}     ->
+          lager:info("starting jun worker on slave node at ~p", [Worker]),
+          % send back to scheduler that all was ok
+          ok = gen_server:cast(Scheduler, {oox, up, self()}),
+          % setup the slave in the job
+          {noreply, State#state{cluster = Cluster, slave = SlaveNode,
+              state = ready, jun_worker = Worker}}
+    end;
 
 handle_info({oox, error, Error}, State=#state{state = launching, scheduler = Scheduler}) ->
     % come back to scheduler, some happens!
