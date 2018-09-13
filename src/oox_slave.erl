@@ -9,7 +9,7 @@
     last_series/1]).
 
 -define(CLASS_DATAFRAME, 'pandas.core.frame.DataFrame').
--define(CLASS_SERIES, 'pandas.core.frame.DataFrame').
+-define(CLASS_SERIES, 'pandas.core.frame.Series').
 
 unique_serial() ->
     {MS, S, US} = erlang:timestamp(),
