@@ -28,6 +28,7 @@ stop_link(Pid) ->
     gen_server:call(Pid, stop_link).
 
 init([Scheduler, Host]) ->
+    process_flag(trap_exit, true),
     % at init process start the cluster, at this point
     % since launching a new slave is an asynchronous process
     % then let it do after initializing

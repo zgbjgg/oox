@@ -49,6 +49,7 @@ get_queue() ->
     gen_server:call(?MODULE, get_queue).
 
 init([]) ->
+    process_flag(trap_exit, true),
     {ok, #state{jobs = [], subscriber = undefined}}.
 
 handle_call(stop_link, _From, State) ->

@@ -32,6 +32,7 @@ stop_link(Pid) ->
     gen_server:call(Pid, stop_link).
 
 init([Host]) ->
+    process_flag(trap_exit, true),
     % init the storage in ets for the slaves
     Table = "oox_slaves_" ++ pid_to_list(self()),
     Slaves = ets:new(list_to_atom(Table), [named_table, private]),
