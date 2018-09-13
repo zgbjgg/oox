@@ -55,7 +55,11 @@ slave contains an isolated jun environment, adding a job is easy:
 ```erlang
 (oox@127.0.0.1)9> {ok, Job} = oox_scheduler:add_job("127.0.0.1").
 {ok,<0.115.0>}
-18:53:56.016 [info] ensuring started for jun main dependency, state ok
+11:40:12.308 [info] ensuring started for jun main dependency, state ok
+11:40:13.314 [info] reached slave node '1536856812309129@127.0.0.1', sending launch signal to main process <0.118.0>
+11:40:13.314 [info] receiving launch signal for slave '1536856812309129@127.0.0.1'
+11:40:13.689 [info] sent RPC to slave node '1536856812309129@127.0.0.1' with response {ok,<11388.64.0>}
+11:40:13.689 [info] starting jun worker on slave node at <11388.64.0>
 ```
 
 ## Using commands
