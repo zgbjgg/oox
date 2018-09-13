@@ -21,6 +21,9 @@
 % default kill for os pid of each port (node)
 -define(KILL(OsPid), "kill -9 " ++ integer_to_list(OsPid)).
 
+% define the timeout to wait for rpcs
+-define(RPC_TIMEOUT, 15000).
+
 start_link(Host) ->
     % normal startup without any slave
     gen_server:start_link(?MODULE, [Host], []).
@@ -30,13 +33,17 @@ stop_link(Pid) ->
 
 init([Host]) ->
     % init the storage in ets for the slaves
-    Slaves = ets:new(oox_slaves, [named_table, private]),
+    Table = "oox_slaves_" ++ pid_to_list(self()),
+    Slaves = ets:new(list_to_atom(Table), [named_table, private]),
     {ok, #state{slaves = Slaves, hostname = Host}}.
 
 handle_call(stop_link, _From, State) ->
     {stop, normal, ok, State};
 
-handle_call({rpc, SlaveNode, Options}, _From, State=#state{slaves = Slaves}) ->
+handle_call({rpc, SlaveNode, Options}, From, State) ->
+    handle_call({rpc, SlaveNode, Options, ?RPC_TIMEOUT}, From, State);
+
+handle_call({rpc, SlaveNode, Options, Timeout}, _From, State=#state{slaves = Slaves}) ->
     % search slave node in slaves
     case ets:lookup(Slaves, SlaveNode) of
         [{SlaveNode, _}] ->
@@ -45,7 +52,7 @@ handle_call({rpc, SlaveNode, Options}, _From, State=#state{slaves = Slaves}) ->
             {func, Function} = lists:keyfind(func, 1, Options),
             {args, Args} = case lists:keyfind(args, 1, Options) of false -> {args, []}; A -> A end,
 
-            Response = rpc:call(SlaveNode, Module, Function, Args),
+            Response = rpc:call(SlaveNode, Module, Function, Args, Timeout),
 
             lager:info("sent RPC to slave node ~p with response ~p", [SlaveNode, Response]),
 
