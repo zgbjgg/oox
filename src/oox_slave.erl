@@ -6,10 +6,12 @@
     last_dataframe/1,
     node_port/2,
     ensure_ready/1,
-    last_series/1]).
+    last_series/1,
+    last_iplot/1]).
 
 -define(CLASS_DATAFRAME, 'pandas.core.frame.DataFrame').
 -define(CLASS_SERIES, 'pandas.core.frame.Series').
+-define(CLASS_IPLOT, 'plotly.iplot').
 
 unique_serial() ->
     {MS, S, US} = erlang:timestamp(),
@@ -52,6 +54,13 @@ last_series([{?CLASS_SERIES, Series} | _]) ->
 last_series([_ | Rs])                      ->
     last_series(Rs).
 
+% check where resides the last iplot to take and make an url
+last_iplot([])                          -> none;
+last_iplot([{?CLASS_IPLOT, IPlot} | _]) ->
+    {?CLASS_IPLOT, IPlot};
+last_iplot([_ | Rs])                    ->
+    last_iplot(Rs).
+
 node_port(Cmd, Timeout) ->
     Port = open_port({spawn, Cmd}, [stream, exit_status]),
     receive
@@ -85,4 +94,8 @@ build_fun('$dataframe', Value) ->
 build_fun('$series', Value)   ->
     fun('$series') -> {_, Series} = Value, Series;
        (A)         -> A
+    end;
+build_fun('$iplot', Value)    ->
+    fun('$iplot') -> {_, IPlot} = Value, IPlot;
+       (A)        -> A
     end.
