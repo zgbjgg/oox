@@ -56,9 +56,11 @@ handle_cast({exe, Commands}, State=#state{cluster = Cluster,
     Results = lists:foldl(fun(Cmd, Acc) ->
         LastDataFrame = oox_slave:last_dataframe(lists:reverse(Acc)),
         LastSeries = oox_slave:last_series(lists:reverse(Acc)),
+        LastIPlot = oox_slave:last_iplot(lists:reverse(Acc)),
         [Cmd0] = oox_slave:parse_commands([Cmd], '$dataframe', LastDataFrame),
         [Cmd1] = oox_slave:parse_commands([Cmd0], '$series', LastSeries),
-        case gen_server:call(Cluster, {rpc, SlaveNode, Cmd1, infinity}, infinity) of
+        [Cmd2] = oox_slave:parse_commands([Cmd1], '$iplot', LastIPlot),
+        case gen_server:call(Cluster, {rpc, SlaveNode, Cmd2, infinity}, infinity) of
             {ok, R}        ->
                 Acc ++ [R];
             {error, Error} ->
