@@ -12,6 +12,7 @@
 -define(CLASS_DATAFRAME, 'pandas.core.frame.DataFrame').
 -define(CLASS_SERIES, 'pandas.core.frame.Series').
 -define(CLASS_IPLOT, 'plotly.iplot').
+-define(CLASS_GROUPBY, 'pandas.core.groupby.DataFrameGroupBy').
 
 unique_serial() ->
     {MS, S, US} = erlang:timestamp(),
@@ -42,6 +43,8 @@ parse_commands([Command | Commands], For, Value) ->
 
 % check where resides the last dataframe to take from there
 last_dataframe([])                                  -> none;
+last_dataframe([{?CLASS_GROUPBY, DataFrame} | _])   ->
+    {?CLASS_GROUPBY, DataFrame};
 last_dataframe([{?CLASS_DATAFRAME, DataFrame} | _]) ->
     {?CLASS_DATAFRAME, DataFrame};
 last_dataframe([_ | Rs])                            ->
