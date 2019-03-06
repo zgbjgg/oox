@@ -97,7 +97,7 @@ test_oox_scheduler_add_job(Config) ->
     Cmds = proplists:get_value(cmds, Config),
     {ok, working} = oox_scheduler:start_job(Job, Cmds),
     receive 
-        {job, Job, T} -> ?assertEqual(passed, T)
+        {job, Job, T, _Results} -> ?assertEqual(passed, T)
     after
         5000 ->
             ?assertEqual(timeout, Job)
@@ -116,7 +116,7 @@ test_oox_scheduler_add_job_broken(Config) ->
     Cmds = proplists:get_value(broken_cmds, Config),
     {ok, working} = oox_scheduler:start_job(Job, Cmds),
     receive
-        {job, Job, T} -> ?assertMatch({broken, _}, T)
+        {job, Job, T, _Results} -> ?assertMatch({broken, _}, T)
     after
         5000 ->
             ?assertEqual(timeout, Job)
