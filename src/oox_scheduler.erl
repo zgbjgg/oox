@@ -95,7 +95,7 @@ handle_cast({oox, done_job, Job, Results}, State=#state{jobs = Jobs, subscriber 
     % the subscribing process will receive a notification about how the job was
     % based on the results analisis
     JobStatus = analyze_results(Results),
-    Subscriber ! {job, Job, JobStatus},
+    Subscriber ! {job, Job, JobStatus, Results},
     {noreply, State#state{jobs = Jobs -- [Job]}};
 
 handle_cast({oox, up, Job}, State=#state{jobs = Jobs, queue = Queue}) ->
