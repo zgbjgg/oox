@@ -9,10 +9,10 @@
     last_series/1,
     last_iplot/1]).
 
--define(CLASS_DATAFRAME, 'pandas.core.frame.DataFrame').
--define(CLASS_SERIES, 'pandas.core.frame.Series').
--define(CLASS_IPLOT, 'plotly.iplot').
--define(CLASS_GROUPBY, 'pandas.core.groupby.DataFrameGroupBy').
+-define(CLASS_DATAFRAME, <<"pandas.core.frame.DataFrame">>).
+-define(CLASS_SERIES, <<"pandas.core.frame.Series">>).
+-define(CLASS_IPLOT, <<"plotly.iplot">>).
+-define(CLASS_GROUPBY, <<"pandas.core.groupby.DataFrameGroupBy">>).
 
 unique_serial() ->
     {MS, S, US} = erlang:timestamp(),
