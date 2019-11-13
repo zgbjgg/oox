@@ -41,7 +41,7 @@ test:
 	$(REBAR3) ct --cover
 	$(REBAR3) cover
 	$(REBAR3) covertool generate
-	@mv _build/test/covertool/jun.covertool.xml cobertura.xml
+	@mv _build/test/covertool/oox.covertool.xml cobertura.xml
 
 cover:
 	$(REBAR3) cover
