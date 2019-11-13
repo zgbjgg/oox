@@ -50,7 +50,7 @@ init_per_testcase(_, _Config) ->
     true = erlang:set_cookie(node(), 'oox'),
     % define commands since can be used path for file
     {ok, Cwd} = file:get_cwd(),
-    Path = list_to_atom(Cwd ++ "/../../lib/oox/test/files/csv.txt"),
+    Path = list_to_binary(Cwd ++ "/../../lib/oox/test/files/csv.txt"),
     [{cmds, ?CMDS(Path)}, {broken_cmds, ?BROKEN_CMDS(Path)}].
 
 end_per_testcase(_, _Config) ->
