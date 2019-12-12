@@ -1,12 +1,12 @@
 {"1.1.0",
 [{<<"erlport">>,{pkg,<<"erlport">>,<<"0.10.1">>},1},
  {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.9">>},1},
- {<<"jun">>,{pkg,<<"jun">>,<<"0.2.1">>},0},
+ {<<"jun">>,{pkg,<<"jun">>,<<"0.2.2">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.6.8">>},0}]}.
 [
 {pkg_hash,[
  {<<"erlport">>, <<"C96FFA51BBCAB0298232FCDFE8C3E110F1598011DE71AE6B9082B80C9E2E476A">>},
  {<<"goldrush">>, <<"F06E5D5F1277DA5C413E84D5A2924174182FB108DABB39D5EC548B27424CD106">>},
- {<<"jun">>, <<"9E86651442F630F0A4813B511D515C504A1235B2205F40A2C827724E6A4FAD11">>},
+ {<<"jun">>, <<"DFFD51E2BCBEB4E4AEB3F031B120472585BB49A29B4A8ED70DD46404570E0FA7">>},
  {<<"lager">>, <<"897EFC7679BB82383448646C96768CDC4E747464DD18B999C7AACA485686B0DA">>}]}
 ].
