@@ -7,6 +7,8 @@
 [![Build Status](https://travis-ci.org/zgbjgg/oox.svg?branch=master)](https://travis-ci.org/zgbjgg/oox)
 [![Codecov](https://img.shields.io/codecov/c/github/zgbjgg/oox.svg)](https://codecov.io/gh/zgbjgg/oox)
 [![License: MIT](https://img.shields.io/github/license/zgbjgg/oox.svg)](https://raw.githubusercontent.com/zgbjgg/oox/master/LICENSE)
+[![Hex.pm](https://img.shields.io/hexpm/dt/oox.svg)](https://hex.pm/packages/oox)
+[![Hex.pm](https://img.shields.io/hexpm/dw/oox.svg)](https://hex.pm/packages/oox)
 
 OOX is a set of tools to execute many jun commands into an isolated slave process, taking control of the cluster (slaves) and managing
 the connection to it. This tools also can be used to generate a job and check if passed or broken (similar to TDD) but applied to
