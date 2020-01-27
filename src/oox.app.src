@@ -1,6 +1,6 @@
 {application, oox,
  [{description, "slave isolated process & scheduler for jun environments"},
-  {vsn, "0.1.24"},
+  {vsn, "0.1.25"},
   {registered, []},
   {mod, { oox_app, []}},
   {applications,
